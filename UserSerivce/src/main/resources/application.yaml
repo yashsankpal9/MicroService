@@ -1,0 +1,92 @@
+server:
+  port: 8082
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/microservices
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  application:
+    name: USER-SERVICE
+#
+#  config:
+#    import:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-22177389.okta.com/oauth2/default
+      client:
+        registration:
+          myService:
+            provider: okta
+            authorizationGrantType: client_credentials
+            scope:
+              - internal
+            client-id: 0oa9wqrba0DpxqG9m5d7
+            client-secret: qpJLXMG1NSyC_ARKp7mmZN_8wTVQ9b_RTrxCBEGO
+
+        provider:
+          okta:
+            issuerUri: https://dev-22177389.okta.com/oauth2/default
+
+
+
+  okta:
+    oauth2:
+      issuer: https://dev-22177389.okta.com/oauth2/default
+      audience: api://default
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8671/eureka
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ratingHotelBreaker:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 6s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+  retry:
+    instances:
+      ratingHotelRetry:
+        max-attempts: 3
+        wait-duration: 5s
+  ratelimiter:
+    instances:
+      userLimiter:
+        limit-refresh-period: 4s
+        limit-for-period: 2
+        timeout-duration: 0s
